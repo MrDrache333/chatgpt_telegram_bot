@@ -189,8 +189,8 @@ class ChatGPT:
 
 
 async def transcribe_audio(audio_file) -> str:
-    r = await aclient.audio.transcribe("whisper-1", audio_file)
-    return r["text"] or ""
+    r = await aclient.audio.transcriptions.create(model="whisper-1", file=audio_file)
+    return r.text or ""
 
 
 async def generate_images(prompt, n_images=4, size="1024x1024"):
