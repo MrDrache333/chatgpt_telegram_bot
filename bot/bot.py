@@ -128,22 +128,23 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
 
 
 async def start_handle(update: Update, context: CallbackContext):
-    if len(config.allowed_telegram_usernames) > 0 & update.message.from_user.id not in config.allowed_telegram_usernames:
-        reply_text = "Hallo! Leider wurden wir uns noch nicht vorgestellt. Daher darf ich dir noch nicht behilflich sein. Wende dich an den Entwickler (@KOG498), um Zugriff zu erhalten."
+    if (len(config.allowed_telegram_usernames) > 0) & (
+            update.message.from_user.id in config.allowed_telegram_usernames):
+        await register_user_if_not_exists(update, context, update.message.from_user)
+        user_id = update.message.from_user.id
+
+        db.set_user_attribute(user_id, "last_interaction", datetime.now())
+        db.start_new_dialog(user_id)
+
+        reply_text = "Hallo! Ich bin dein <b>Assistent</b>, ein Bot implementiert mit der OpenAI API 🤖\n\n"
+        reply_text += HELP_MESSAGE
+
         await update.message.reply_text(reply_text, parse_mode=ParseMode.HTML)
+        await show_chat_modes_handle(update, context)
         return
 
-    await register_user_if_not_exists(update, context, update.message.from_user)
-    user_id = update.message.from_user.id
-
-    db.set_user_attribute(user_id, "last_interaction", datetime.now())
-    db.start_new_dialog(user_id)
-
-    reply_text = "Hallo! Ich bin dein <b>Assistent</b>, ein Bot implementiert mit der OpenAI API 🤖\n\n"
-    reply_text += HELP_MESSAGE
-
+    reply_text = "Hallo! Leider wurden wir uns noch nicht vorgestellt. Daher darf ich dir noch nicht behilflich sein. Wende dich an den Entwickler (@KOG498), um Zugriff zu erhalten."
     await update.message.reply_text(reply_text, parse_mode=ParseMode.HTML)
-    await show_chat_modes_handle(update, context)
 
 
 async def help_handle(update: Update, context: CallbackContext):
