@@ -63,7 +63,6 @@ Beispiel: "{bot_username}, schreibe ein Gedicht über Telegram"
 """
 
 
-
 def split_text_into_chunks(text, chunk_size):
     for i in range(0, len(text), chunk_size):
         yield text[i:i + chunk_size]
@@ -129,6 +128,11 @@ async def is_bot_mentioned(update: Update, context: CallbackContext):
 
 
 async def start_handle(update: Update, context: CallbackContext):
+    if len(config.allowed_telegram_usernames) > 0 & update.message.from_user.id not in config.allowed_telegram_usernames:
+        reply_text = "Hallo! Leider wurden wir uns noch nicht vorgestellt. Daher darf ich dir noch nicht behilflich sein. Wende dich an den Entwickler (@KOG498), um Zugriff zu erhalten."
+        await update.message.reply_text(reply_text, parse_mode=ParseMode.HTML)
+        return
+
     await register_user_if_not_exists(update, context, update.message.from_user)
     user_id = update.message.from_user.id
 
@@ -230,7 +234,7 @@ async def message_handle(update: Update, context: CallbackContext, message=None,
             if _message is None or len(_message) == 0:
                 await update.message.reply_text(
                     "🥲 Du hast eine <b>leere Nachricht</b> gesendet. Damit kann ich leider nichts anfangen. Bitte versuche es erneut",
-                                                parse_mode=ParseMode.HTML)
+                    parse_mode=ParseMode.HTML)
                 return
 
             dialog_messages = db.get_dialog_messages(user_id, dialog_id=None)
@@ -688,7 +692,7 @@ def run_bot() -> None:
         user_filter = filters.User(username=usernames) | filters.User(user_id=user_ids) | filters.Chat(
             chat_id=group_ids)
 
-    application.add_handler(CommandHandler("start", start_handle, filters=user_filter))
+    application.add_handler(CommandHandler("start", start_handle))
     application.add_handler(CommandHandler("help", help_handle, filters=user_filter))
     application.add_handler(CommandHandler("help_group_chat", help_group_chat_handle, filters=user_filter))
 
